@@ -78,14 +78,43 @@ def _ensure_dirs() -> None:
         Path(d).mkdir(parents=True, exist_ok=True)
 
 
+async def _ensure_vector_index() -> None:
+    """为已提交但未分块的文档构建向量索引（幂等，统一 metadata 路径）。"""
+    from app.services.knowledge_service import knowledge_service
+
+    try:
+        async with AsyncSessionLocal() as db:
+            n = await knowledge_service.rebuild_index_for_docs(db)
+            if n:
+                logger.info("向量索引构建完成：共 %d 篇文档", n)
+            else:
+                count = await knowledge_service.vector_store.count()
+                logger.info("向量库现有 %d 个分块，无需重建", count)
+    except Exception as exc:
+        logger.warning("向量索引初始化跳过（可稍后手动重建）: %s", exc)
+
+
+async def _shutdown_llm_services() -> None:
+    try:
+        from app.rag.embedding import embedding_service
+        from app.rag.reranker import reranker
+
+        await embedding_service.close()
+        await reranker.close()
+    except Exception:
+        pass
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     logger.info("启动 %s v%s", settings.APP_NAME, settings.APP_VERSION)
     await _wait_for_db()
     await _init_schema_and_seed()
     _ensure_dirs()
-    # 索引/图谱构建在对应里程碑接入（M2/M5）
+    await _ensure_vector_index()
+    # 图谱构建在 M5 接入
     yield
+    await _shutdown_llm_services()
     await close_redis()
     await engine.dispose()
 
@@ -146,12 +175,12 @@ async def health():
 
 
 # ---------------- 路由注册（按里程碑渐进接入）----------------
-from app.api import auth, notification, user  # noqa: E402
+from app.api import auth, knowledge, notification, user  # noqa: E402
 
-for r in (auth.router, notification.router, user.router):
+for r in (auth.router, notification.router, user.router, knowledge.router):
     app.include_router(r, prefix=settings.API_PREFIX)
 
-# M2+: qa / knowledge / analysis / dashboard / graph / contract 后续在此注册
+# M3+: qa / analysis / dashboard / graph / contract 后续在此注册
 
 # 静态文件（上传的头像/合同原文件）
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
