@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="default">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a1628" />
+    <title>智法通 V2 · 企业级智能法律顾问平台</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a96e' d='M12 2 3 6v6c0 5 3.8 9.4 9 10 5.2-.6 9-5 9-10V6L12 2Zm0 3.2 6 2.7v6.1c0 3.5-2.5 6.8-6 7.4-3.5-.6-6-3.9-6-7.4V7.9l6-2.7Z'/%3E%3C/svg%3E" />
+    <style>
+      #app-loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0a1628;color:#c9a96e;font-size:18px;letter-spacing:2px}
+      #app-loading .spinner{width:42px;height:42px;border:3px solid rgba(201,169,110,.3);border-top-color:#c9a96e;border-radius:50%;animation:spin 1s linear infinite}
+      @keyframes spin{to{transform:rotate(360deg)}}
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="app-loading"><div class="spinner"></div></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

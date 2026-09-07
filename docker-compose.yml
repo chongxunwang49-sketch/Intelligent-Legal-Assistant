@@ -1,0 +1,130 @@
+# ============================================================
+# 智法通 V2 —— 生产编排（mysql/redis/neo4j/backend/frontend）
+# 前置：Ollama(宿主机 11434) 与 rerank 服务(宿主机 9999，见 rerank_service/)
+# 启动：docker compose up -d --build   访问 http://localhost:8188
+# ============================================================
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: zft2-mysql
+    restart: unless-stopped
+    ports: ["${MYSQL_PORT:-13306}:3306"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-zhifatong_root_2026}
+      MYSQL_DATABASE: zhifatong
+      MYSQL_USER: ${MYSQL_USER:-zhifatong}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-zhifatong_pass_2026}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max-connections=1000
+      - --innodb-buffer-pool-size=512M
+    volumes:
+      - zft2_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-zhifatong_root_2026}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [zft2_net]
+
+  redis:
+    image: redis:7-alpine
+    container_name: zft2-redis
+    restart: unless-stopped
+    ports: ["${REDIS_PORT:-26379}:6379"]
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes: [zft2_redis_data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [zft2_net]
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: zft2-neo4j
+    restart: unless-stopped
+    ports: ["${NEO4J_HTTP_PORT:-17474}:7474", "${NEO4J_BOLT_PORT:-17687}:7687"]
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-zhifatong_neo4j_2026}
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 1g
+    volumes:
+      - zft2_neo4j_data:/data
+      - zft2_neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+    networks: [zft2_net]
+
+  backend:
+    build: ./backend
+    container_name: zft2-backend
+    restart: unless-stopped
+    ports: ["${BACKEND_PORT:-28000}:8000"]
+    environment:
+      ZHIFATONG_MYSQL_HOST: mysql
+      ZHIFATONG_MYSQL_PORT: 3306
+      ZHIFATONG_MYSQL_USER: root
+      ZHIFATONG_MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-zhifatong_root_2026}
+      ZHIFATONG_MYSQL_DATABASE: zhifatong
+      ZHIFATONG_REDIS_HOST: redis
+      ZHIFATONG_REDIS_PORT: 6379
+      ZHIFATONG_NEO4J_URI: bolt://neo4j:7687
+      ZHIFATONG_NEO4J_USER: neo4j
+      ZHIFATONG_NEO4J_PASSWORD: ${NEO4J_PASSWORD:-zhifatong_neo4j_2026}
+      ZHIFATONG_OLLAMA_BASE_URL: http://host.docker.internal:11434
+      ZHIFATONG_RERANK_SERVICE_URL: http://host.docker.internal:9999
+      ZHIFATONG_UPLOAD_DIR: /app/uploads
+      ZHIFATONG_CHROMA_PERSIST_DIR: /app/data/chroma
+      ZHIFATONG_JWT_SECRET_KEY: ${JWT_SECRET_KEY:-zhifatong-v2-secret-key-change-in-production}
+      ZHIFATONG_DEBUG: "false"
+    volumes:
+      - zft2_upload_data:/app/uploads
+      - zft2_chroma_data:/app/data/chroma
+      - zft2_backend_logs:/app/logs
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      neo4j: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+    networks: [zft2_net]
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api
+    container_name: zft2-frontend
+    restart: unless-stopped
+    ports: ["${FRONTEND_PORT:-8188}:80"]
+    depends_on:
+      backend: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+    networks: [zft2_net]
+
+volumes:
+  zft2_mysql_data:
+  zft2_redis_data:
+  zft2_neo4j_data:
+  zft2_neo4j_logs:
+  zft2_upload_data:
+  zft2_chroma_data:
+  zft2_backend_logs:
+
+networks:
+  zft2_net:
+    driver: bridge
