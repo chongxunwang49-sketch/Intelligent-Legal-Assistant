@@ -1,0 +1,78 @@
+# ============================================================
+# 智法通 V2 —— 开发期基础设施 compose（仅数据库/缓存/图谱）
+# 用法：docker compose -f docker-compose.infra.yml up -d
+# 生产完整编排见 docker-compose.yml（M8）
+# ============================================================
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: zft2-mysql
+    restart: unless-stopped
+    ports:
+      - "13306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: zhifatong_root_2026
+      MYSQL_DATABASE: zhifatong
+      MYSQL_USER: zhifatong
+      MYSQL_PASSWORD: zhifatong_pass_2026
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --max-connections=1000
+    volumes:
+      - zft2_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pzhifatong_root_2026"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [zft2_net]
+
+  redis:
+    image: redis:7-alpine
+    container_name: zft2-redis
+    restart: unless-stopped
+    ports:
+      - "26379:6379"
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - zft2_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [zft2_net]
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: zft2-neo4j
+    restart: unless-stopped
+    ports:
+      - "17474:7474"
+      - "17687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/zhifatong_neo4j_2026
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 1g
+    volumes:
+      - zft2_neo4j_data:/data
+      - zft2_neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+    networks: [zft2_net]
+
+volumes:
+  zft2_mysql_data:
+  zft2_redis_data:
+  zft2_neo4j_data:
+  zft2_neo4j_logs:
+
+networks:
+  zft2_net:
+    driver: bridge

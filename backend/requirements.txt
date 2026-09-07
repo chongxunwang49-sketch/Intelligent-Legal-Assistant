@@ -1,0 +1,52 @@
+# ========== 智法通 V2 后端依赖（conda base / Docker python3.10 通用）==========
+# ---------- Web 框架 ----------
+fastapi>=0.110
+uvicorn[standard]>=0.27
+python-multipart>=0.0.9
+httptools>=0.6
+
+# ---------- 数据库 ORM ----------
+sqlalchemy[asyncio]>=2.0.25
+aiomysql>=0.2.0
+pymysql>=1.1
+greenlet>=3.0
+
+# ---------- 缓存 ----------
+redis>=4.5
+
+# ---------- 配置/校验 ----------
+pydantic>=2.5
+pydantic-settings>=2.1
+email-validator>=2.1
+python-dotenv>=1.0
+
+# ---------- 认证 ----------
+python-jose[cryptography]>=3.3
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.0
+
+# ---------- HTTP 客户端 ----------
+httpx>=0.26
+
+# ---------- 向量库 / 检索 ----------
+chromadb>=0.4.22
+jieba>=0.42
+
+# ---------- Agent / LLM 编排 ----------
+langgraph>=0.0.30
+langchain-core>=0.1
+
+# ---------- 图数据库 ----------
+neo4j>=5.14
+
+# ---------- MCP 协议 ----------
+mcp>=1.0
+
+# ---------- 文档解析 ----------
+PyMuPDF>=1.23
+pdfplumber>=0.10
+python-docx>=1.1
+
+# ---------- 分析 / 数学 ----------
+numpy>=1.24
+scikit-learn>=1.3
