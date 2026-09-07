@@ -94,6 +94,25 @@ async def _ensure_vector_index() -> None:
         logger.warning("向量索引初始化跳过（可稍后手动重建）: %s", exc)
 
 
+async def _ensure_graph() -> None:
+    """Neo4j 可用且图谱为空时自动构建（幂等）。"""
+    from app.services.graph_service import graph_service
+
+    if not settings.NEO4J_ENABLED:
+        return
+    try:
+        if not await graph_service.verify_connectivity():
+            logger.warning("Neo4j 不可达，图谱初始化跳过")
+            return
+        stats = await graph_service.get_stats()
+        if stats.get("available") and stats.get("total", 0) == 0:
+            async with AsyncSessionLocal() as db:
+                result = await graph_service.build_graph(db)
+                logger.info("知识图谱构建完成: %s", result.get("stats"))
+    except Exception as exc:
+        logger.warning("知识图谱初始化跳过: %s", exc)
+
+
 async def _shutdown_llm_services() -> None:
     try:
         from app.rag.embedding import embedding_service
@@ -112,9 +131,15 @@ async def lifespan(_: FastAPI):
     await _init_schema_and_seed()
     _ensure_dirs()
     await _ensure_vector_index()
-    # 图谱构建在 M5 接入
+    await _ensure_graph()
     yield
     await _shutdown_llm_services()
+    try:
+        from app.services.graph_service import graph_service
+
+        await graph_service.close_driver()
+    except Exception:
+        pass
     await close_redis()
     await engine.dispose()
 
@@ -175,12 +200,30 @@ async def health():
 
 
 # ---------------- 路由注册（按里程碑渐进接入）----------------
-from app.api import auth, contract, knowledge, notification, qa, user  # noqa: E402
+from app.api import (
+    analysis,
+    auth,
+    contract,
+    dashboard,
+    graph,
+    knowledge,
+    notification,
+    qa,
+    user,
+)  # noqa: E402
 
-for r in (auth.router, notification.router, user.router, knowledge.router, qa.router, contract.router):
+for r in (
+    auth.router,
+    notification.router,
+    user.router,
+    knowledge.router,
+    qa.router,
+    contract.router,
+    analysis.router,
+    dashboard.router,
+    graph.router,
+):
     app.include_router(r, prefix=settings.API_PREFIX)
-
-# M5+: analysis / dashboard / graph 后续在此注册
 
 # 静态文件（上传的头像/合同原文件）
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)

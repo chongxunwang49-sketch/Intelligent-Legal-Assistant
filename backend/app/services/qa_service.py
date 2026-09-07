@@ -132,7 +132,8 @@ class QAService:
         conv = await self._get_conv(db, user_id, conversation_id, question)
         db.add(Message(conversation_id=conv.id, role="user", content=question))
         history = await self._recent_history(db, conv.id)
-        result = await rag_pipeline.query(question, history)
+        graph_ctx = await self._graph_context(question)
+        result = await rag_pipeline.query(question, history, _graph_context=graph_ctx)
         answer = sanitize_html_content(result["answer"])
         full_answer = answer + LEGAL_DISCLAIMER
         citations_json = json.dumps(result.get("citations", []), ensure_ascii=False)
@@ -202,6 +203,27 @@ class QAService:
         )
         conv.message_count = (conv.message_count or 0) + 2
         await db.commit()
+
+    async def _graph_context(self, question: str) -> list[dict]:
+        """GraphRAG：图谱关联候选（Neo4j 不可用/失败时返回空，不阻塞主检索）。"""
+        try:
+            from app.services.graph_service import graph_service
+
+            rows = await graph_service.graph_query_text(question, 5)
+            return [
+                {
+                    "id": x.get("id") or f"g_{i}",
+                    "text": x.get("text", "")[:400],
+                    "metadata": {
+                        "law_name": x.get("law_name") or x.get("title") or "",
+                        "article_no": x.get("article_no") or "",
+                        "title": x.get("title") or x.get("law_name") or "",
+                    },
+                }
+                for i, x in enumerate(rows)
+            ]
+        except Exception:
+            return []
 
     async def _recent_history(self, db, conversation_id: int) -> list[dict]:
         r = await db.execute(
