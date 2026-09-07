@@ -88,7 +88,7 @@ async def _ensure_vector_index() -> None:
             if n:
                 logger.info("向量索引构建完成：共 %d 篇文档", n)
             else:
-                count = await knowledge_service.vector_store.count()
+                count = knowledge_service.vector_store.count()
                 logger.info("向量库现有 %d 个分块，无需重建", count)
     except Exception as exc:
         logger.warning("向量索引初始化跳过（可稍后手动重建）: %s", exc)
@@ -175,12 +175,12 @@ async def health():
 
 
 # ---------------- 路由注册（按里程碑渐进接入）----------------
-from app.api import auth, knowledge, notification, user  # noqa: E402
+from app.api import auth, knowledge, notification, qa, user  # noqa: E402
 
-for r in (auth.router, notification.router, user.router, knowledge.router):
+for r in (auth.router, notification.router, user.router, knowledge.router, qa.router):
     app.include_router(r, prefix=settings.API_PREFIX)
 
-# M3+: qa / analysis / dashboard / graph / contract 后续在此注册
+# M4+: analysis / dashboard / graph / contract 后续在此注册
 
 # 静态文件（上传的头像/合同原文件）
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
