@@ -3,6 +3,8 @@
 # 前置：Ollama(宿主机 11434) 与 rerank 服务(宿主机 9999，见 rerank_service/)
 # 启动：docker compose up -d --build   访问 http://localhost:8188
 # ============================================================
+name: zhifatong2
+
 services:
   mysql:
     image: mysql:8.0
@@ -110,7 +112,7 @@ services:
     depends_on:
       backend: { condition: service_healthy }
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/"]
       interval: 20s
       timeout: 5s
       retries: 6

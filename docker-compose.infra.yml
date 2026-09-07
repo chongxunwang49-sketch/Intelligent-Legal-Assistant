@@ -1,4 +1,5 @@
 # ============================================================
+name: zhifatong2
 # 智法通 V2 —— 开发期基础设施 compose（仅数据库/缓存/图谱）
 # 用法：docker compose -f docker-compose.infra.yml up -d
 # 生产完整编排见 docker-compose.yml（M8）

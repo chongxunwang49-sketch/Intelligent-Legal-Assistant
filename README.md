@@ -66,12 +66,19 @@ cd frontend && npm install && npm run dev
 | 法务负责人 | `lawyer` | `lawyer123` | 业务 + 数据分析 + 知识库管理 |
 | 普通用户 | `user` | `user123456` | 问答/合同/检索，问答 50 次/日 |
 
-## 🗺 交付进度
+## 🗺 交付进度（全部完成）
 
-- ✅ M0 环境与脚手架（依赖/基础设施 compose/自建 rerank 精排服务）
+- ✅ M0 环境与脚手架（依赖 / 基础设施 compose / 自建 rerank 精排服务）
 - ✅ M1 后端基础设施（16 表 / RBAC / 认证 / 通知 / 用户管理 / 幂等种子 / 生命周期）
-- 🔄 M2 知识库 + 两阶段 RAG
-- ⏳ M3 智能问答 + Self-RAG + SSE ｜ M4 合同审查多 Agent ｜ M5 图谱/GraphRAG/时间旅行/MCP
-- ⏳ M6 前端重建（UI 对齐）｜ M7 测试与文档 ｜ M8 Docker 化与部署验收
+- ✅ M2 知识库 + 两阶段 RAG（修复"上传文档检索不到"缺陷）
+- ✅ M3 智能问答 + Self-RAG 闭环 + SSE
+- ✅ M4 LangGraph 12 节点对抗式合同审查 + 公共规则库 + Function Calling 工具集
+- ✅ M5 Neo4j 语义图谱 / GraphRAG 三路 / 时间旅行 / 官方 MCP(MCPServer) / 分析仪表盘
+- ✅ M6 Vue3 前端重建（8 页面 · 布局风格对齐 · 4 主题 · SSE · ECharts）
+- ✅ M7 测试与文档（需求文档 / 部署手册 / 测试报告）
+- ✅ M8 Docker 化与部署验收（5 容器全 healthy，端到端 24/24 · 100%）
 
-> 完整需求文档与部署手册将随里程碑在 `docs/` 沉淀。
+## 📚 文档
+- 需求文档：[docs/项目需求文档.md](docs/项目需求文档.md)
+- 部署手册：[docs/部署手册.md](docs/部署手册.md)
+- 测试报告：[docs/测试报告.md](docs/测试报告.md)

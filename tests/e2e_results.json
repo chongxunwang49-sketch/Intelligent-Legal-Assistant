@@ -1,0 +1,156 @@
+{
+  "summary": {
+    "passed": 24,
+    "failed": 0,
+    "skipped": 0,
+    "total": 24,
+    "pass_rate": 100.0
+  },
+  "timestamp": "2026-09-07 12:26:03",
+  "results": [
+    {
+      "name": "系统健康 /health",
+      "passed": true,
+      "detail": "",
+      "ms": 15
+    },
+    {
+      "name": "登录 admin",
+      "passed": true,
+      "detail": "roles=['admin']",
+      "ms": 0
+    },
+    {
+      "name": "登录 lawyer",
+      "passed": true,
+      "detail": "roles=['legal_admin']",
+      "ms": 0
+    },
+    {
+      "name": "登录 user",
+      "passed": true,
+      "detail": "roles=['user']",
+      "ms": 0
+    },
+    {
+      "name": "GET /auth/me 权限码",
+      "passed": true,
+      "detail": "perms=['analysis:view', 'knowledge:manage']",
+      "ms": 0
+    },
+    {
+      "name": "RBAC: user 访问 /users 拒绝",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "RBAC: lawyer 访问 /users 拒绝",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "RBAC: admin 访问 /users 放行",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "RBAC: user 访问 /analysis 拒绝",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "RBAC: lawyer 访问 /analysis 放行",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "弱密码注册拒绝",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "无 token 401",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "知识库统计(文档>0)",
+      "passed": true,
+      "detail": "docs=8 chunks=25",
+      "ms": 0
+    },
+    {
+      "name": "知识库语义检索命中",
+      "passed": true,
+      "detail": "hits=5",
+      "ms": 0
+    },
+    {
+      "name": "Neo4j 图谱可用(节点>0)",
+      "passed": true,
+      "detail": "total=41",
+      "ms": 0
+    },
+    {
+      "name": "图谱可视化数据(nodes>0)",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "时间旅行 2020 含合同法",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "时间旅行 2021 剔除合同法",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "热点分析返回",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "仪表盘概览",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "通知未读数接口",
+      "passed": true,
+      "detail": "",
+      "ms": 0
+    },
+    {
+      "name": "合同历史(含演示)",
+      "passed": true,
+      "detail": "count=1",
+      "ms": 0
+    },
+    {
+      "name": "合同报告返回风险条款",
+      "passed": true,
+      "detail": "score=62.5 risk=medium",
+      "ms": 0
+    },
+    {
+      "name": "智能问答(非流式)",
+      "passed": true,
+      "detail": "conf=0.795",
+      "ms": 6017
+    }
+  ]
+}
