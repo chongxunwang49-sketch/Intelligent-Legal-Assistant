@@ -175,12 +175,12 @@ async def health():
 
 
 # ---------------- 路由注册（按里程碑渐进接入）----------------
-from app.api import auth, knowledge, notification, qa, user  # noqa: E402
+from app.api import auth, contract, knowledge, notification, qa, user  # noqa: E402
 
-for r in (auth.router, notification.router, user.router, knowledge.router, qa.router):
+for r in (auth.router, notification.router, user.router, knowledge.router, qa.router, contract.router):
     app.include_router(r, prefix=settings.API_PREFIX)
 
-# M4+: analysis / dashboard / graph / contract 后续在此注册
+# M5+: analysis / dashboard / graph 后续在此注册
 
 # 静态文件（上传的头像/合同原文件）
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)

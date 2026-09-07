@@ -42,16 +42,20 @@ class VectorStore:
             if self._collection.count() == 0:
                 return
             got = self._collection.get(limit=1, include=["embeddings"])
-            embs = got.get("embeddings") or []
-            if embs and len(embs[0]) != self.dim:
-                logger.warning(
-                    "向量维度不匹配(现 %d, 期望 %d)，删除集合重建", len(embs[0]), self.dim
-                )
-                self._client.delete_collection(self.collection_name)
-                self._collection = self._client.create_collection(
-                    name=self.collection_name,
-                    metadata={"hnsw:space": "cosine"},
-                )
+            embs = got.get("embeddings")
+            if embs is not None and len(embs) > 0:
+                # chroma 可能返回 numpy 数组：避免对其直接做布尔判断
+                try:
+                    cur_dim = len(embs[0])
+                except TypeError:
+                    cur_dim = int(embs[0].size)
+                if cur_dim != self.dim:
+                    logger.warning("向量维度不匹配(现 %d, 期望 %d)，删除集合重建", cur_dim, self.dim)
+                    self._client.delete_collection(self.collection_name)
+                    self._collection = self._client.create_collection(
+                        name=self.collection_name,
+                        metadata={"hnsw:space": "cosine"},
+                    )
         except Exception as exc:  # pragma: no cover
             logger.warning("向量维度自检失败: %s", exc)
 
